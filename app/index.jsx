@@ -26,7 +26,7 @@ const HomeScreen = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 7000);
+    const timer = setTimeout(() => setIsLoading(false), 1000);
     return () => clearTimeout(timer);
   }, []);
 
@@ -39,7 +39,6 @@ if (isLoading) {
     </View>
   );
 }
-
 
   return (
     <View style={{ flex: 1 }}>
@@ -54,9 +53,9 @@ if (isLoading) {
         <Text className="text-white text-5xl mt-5 font-bold">TRAVELOKAL</Text>
       </View>
 
-        <View className="flex-1"/>
+        <View className="flex-1 lg:hidden"/>
 
-        <View className="w-full px-6 mb-10">
+        <View className="w-full px-6 mb-10 lg:top-40">
           <View className="mb-8">
             <Text className="text-left lg:text-center text-white text-xl">Plan your</Text>
             <Text className="text-left lg:text-center text-white text-3xl font-bold">Luxurious Vacations</Text>
@@ -128,7 +127,7 @@ const DetailsScreen = ({ navigation }) => {
                 key={category}
                 onPress={() => {
                   setActiveCategory(category);
-                  setSearchText(''); // Reset pencarian saat kategori diganti
+                  setSearchText(''); 
                 }}
                 className={`py-2 px-4 rounded-3xl mr-2 ${
                   activeCategory === category ? 'bg-blue-600' : 'bg-gray-300'
@@ -160,18 +159,24 @@ const DetailsScreen = ({ navigation }) => {
         columnWrapperStyle={{
           justifyContent: 'space-between',
         }}
+        keyboardShouldPersistTaps="handled"
         renderItem={({ item }) => (
           <TouchableOpacity
-            className="bg-white rounded-lg shadow-md overflow-hidden"
+            className="bg-white rounded-lg shadow-md overflow-hidden lg:w-52"
             style={{
               flexBasis: '48%',
               marginBottom: 12,
+              maxWidth: '48%', 
             }}
-            onPress={() => navigation.navigate('DetailCard', item)}
-          >
+            onPress={() => navigation.navigate('DetailCard', item)}>
             <Image
               source={item.image}
-              className="w-full h-40"
+              style={{
+                width: '100%',
+                height: 200,
+                borderTopLeftRadius: 8,
+                borderTopRightRadius: 8,
+              }}
               resizeMode="cover"
             />
             <View className="p-4">
@@ -186,7 +191,6 @@ const DetailsScreen = ({ navigation }) => {
           </Text>
         )}
       />
-
       {/* Help Button */}
       <TouchableOpacity
         onPress={() => navigation.navigate('AboutApp')}
@@ -212,27 +216,39 @@ const DetailCardScreen = ({ route, navigation }) => {
         onPress={() => navigation.goBack()}
         style={{
           position: 'absolute',
-          top: 40, 
+          top: 40,
           left: 16,
           backgroundColor: '#333',
           borderRadius: 25,
           padding: 10,
-          zIndex: 10, 
+          zIndex: 10,
         }}
       >
         <Ionicons name="arrow-back" size={30} color="white" />
       </TouchableOpacity>
 
+      {/* Image Section */}
+      <View className="hidden md:flex md:justify-center md:items-center md:h-80">
+        <Image
+          source={imageSource}
+          className="rounded-lg md:w-1/2 md:h-full"
+          resizeMode="cover"
+        />
+      </View>
 
-      <Image source={imageSource} className="w-full h-64" resizeMode="cover" />
-      <View className="flex-1 px-4 mt-4">
+      {/* Mobile Image */}
+      <Image source={imageSource} className="w-full h-64 md:hidden" resizeMode="cover" />
+
+      {/* Content Section */}
+      <View className="flex-1 px-4 mt-4 md:mt-14">
         <Text className="text-black text-2xl font-bold">{title}</Text>
         <Text className="text-gray-500 text-sm mt-2">📍 {location}</Text>
         <Text className="text-gray-500 text-sm mt-1">⭐ 4.5 (355 Reviews)</Text>
         <Text className="text-gray-500 text-sm mt-1">💰 Prices ${price}</Text>
         <Text className="text-gray-700 text-base mt-4">{description}</Text>
         <Text className="text-black text-xl font-bold mt-6">Facilities</Text>
-        {/* Bagian Ikon */}
+
+        {/* Facilities Section */}
         <View className="flex-row justify-evenly mt-4">
           <View className="items-center">
             <Ionicons name="thermometer-outline" size={24} color="gray" />
@@ -248,10 +264,11 @@ const DetailCardScreen = ({ route, navigation }) => {
           </View>
         </View>
 
-        {/* Tombol Explore Now */}
+        {/* Explore Now Button */}
         <TouchableOpacity
           onPress={() => setModalVisible(true)}
-          className="bg-blue-700 rounded-lg py-3 mt-4">
+          className="bg-blue-700 rounded-lg py-3 mt-4"
+        >
           <Text className="text-center text-white text-xl font-bold">Explore Now</Text>
         </TouchableOpacity>
       </View>
@@ -263,21 +280,28 @@ const DetailCardScreen = ({ route, navigation }) => {
         transparent={true}
         onRequestClose={() => setModalVisible(false)}>
         <View className="flex-1 bg-black/60 justify-center items-center">
-          <View className="bg-white w-80 p-5 rounded-lg shadow-lg items-center">
+          {/* Modal Container */}
+          <View className="bg-white max-w-md w-full p-5 rounded-lg shadow-lg items-center">
+            {/* Title */}
             <Text className="text-xl font-bold text-black mb-2">
               Thank you for exploring!
             </Text>
             <Text className="text-gray-700 text-center mb-4">
               You are now one step closer to an unforgettable adventure.
             </Text>
+
+            {/* GIF Image */}
             <Image
               source={require('../assets/images/travel.gif')}
-              className="w-48 h-48 mb-4"
+              className="w-full max-w-[12rem] max-h-48 object-contain mb-4"
               resizeMode="contain"
             />
+
+            {/* Close Button */}
             <TouchableOpacity
               onPress={() => setModalVisible(false)}
-              className="bg-blue-700 px-6 py-2 rounded-lg">
+              className="bg-blue-700 px-6 py-2 rounded-lg"
+            >
               <Text className="text-white font-bold text-lg">Close</Text>
             </TouchableOpacity>
           </View>
@@ -286,6 +310,7 @@ const DetailCardScreen = ({ route, navigation }) => {
     </View>
   );
 };
+
 
 const AboutAppScreen = ({ navigation }) => (
   <View className="flex-1 justify-center items-center bg-white">
@@ -302,7 +327,7 @@ const AboutAppScreen = ({ navigation }) => (
       }}>
       <Ionicons name="arrow-back" size={30} color="white" />
     </TouchableOpacity>
-    <AntDesign name="smileo" size={64} color="black" />
+    <Entypo name="aircraft" size={80} color="black" />
     <Text className="text-2xl  mt-4 font-bold">About Travelokal</Text>
     <Text className="text-gray-600 text-sm mt-1 font-normal">by Anfika Arifin</Text>
     <Text className="text-center text-gray-600 mt-4">
