@@ -12,6 +12,8 @@ import {
   Keyboard,
   TextInput,
   ScrollView,
+  Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -43,17 +45,16 @@ if (isLoading) {
   return (
     <View style={{ flex: 1 }}>
       <ImageBackground
-        source={{ uri: 'https://i.pinimg.com/736x/c3/d8/d0/c3d8d018363c14da207599ddfb51f702.jpg' }}
+        source={require('../assets/images/bg.jpg')}
         resizeMode="cover"
-        style={{ flex: 1, width: null, height: null }}
-        className="bg-contain"
+        style={{ flex: 1, width: '100%', height: '100%' }}
       >
-      <View className="flex items-center mt-28">
-        <Entypo name="aircraft" size={60} color="white" />
-        <Text className="text-white text-5xl mt-5 font-bold">TRAVELOKAL</Text>
-      </View>
+        <View className="flex items-center mt-28">
+          <Entypo name="aircraft" size={60} color="white" />
+          <Text className="text-white text-5xl mt-5 font-bold">TRAVELOKAL</Text>
+        </View>
 
-        <View className="flex-1 lg:hidden"/>
+        <View className="flex-1 lg:hidden" />
 
         <View className="w-full px-6 mb-10 lg:top-40">
           <View className="mb-8">
@@ -69,11 +70,13 @@ if (isLoading) {
       </ImageBackground>
     </View>
   );
+
 };
 
 const DetailsScreen = ({ navigation }) => {
   const [activeCategory, setActiveCategory] = useState('All');
   const [searchText, setSearchText] = useState('');
+  const { width } = useWindowDimensions(); // Mendapatkan lebar layar
 
   // Filter data kategori aktif
   const filteredByCategory =
@@ -82,11 +85,12 @@ const DetailsScreen = ({ navigation }) => {
   // Filter data pencarian
   const displayedData = filteredByCategory.filter(
     (item, index, self) =>
-      // Filter berdasarkan teks pencarian
       item.title.toLowerCase().includes(searchText.toLowerCase()) &&
-      // Hilangkan duplikasi berdasarkan ID
       index === self.findIndex((i) => i.id === item.id)
   );
+
+  // Menentukan jumlah kolom berdasarkan lebar layar
+  const numColumns = width > 600 ? 3 : 2; // Lebih dari 600px akan menampilkan 3 kolom, jika tidak 2 kolom
 
   return (
     <View className="flex-1 bg-gray-200 pt-12">
@@ -116,28 +120,19 @@ const DetailsScreen = ({ navigation }) => {
 
       {/* Category Buttons */}
       <View className="mt-4 mb-4">
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false} 
-          className="px-4"
-        >
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4">
           <View className="flex-row">
             {['All', 'Hotels', 'Adventure', 'Beach', 'Mountain'].map((category) => (
               <TouchableOpacity
                 key={category}
                 onPress={() => {
                   setActiveCategory(category);
-                  setSearchText(''); 
+                  setSearchText('');
                 }}
                 className={`py-2 px-4 rounded-3xl mr-2 ${
                   activeCategory === category ? 'bg-blue-600' : 'bg-gray-300'
-                }`}
-              >
-                <Text
-                  className={`${
-                    activeCategory === category ? 'text-white' : 'text-black'
-                  }`}
-                >
+                }`}>
+                <Text className={`${activeCategory === category ? 'text-white' : 'text-black'}`}>
                   {category}
                 </Text>
               </TouchableOpacity>
@@ -146,27 +141,24 @@ const DetailsScreen = ({ navigation }) => {
         </ScrollView>
       </View>
 
-
       {/* FlatList */}
       <FlatList
         data={displayedData}
         keyExtractor={(item) => item.id}
+        numColumns={numColumns} // Menggunakan jumlah kolom yang sesuai dengan lebar layar
         contentContainerStyle={{
           paddingVertical: 16,
           paddingHorizontal: 12,
         }}
-        numColumns={2}
         columnWrapperStyle={{
           justifyContent: 'space-between',
         }}
-        keyboardShouldPersistTaps="handled"
         renderItem={({ item }) => (
           <TouchableOpacity
-            className="bg-white rounded-lg shadow-md overflow-hidden lg:w-52"
+            className="bg-white rounded-lg shadow-md overflow-hidden"
             style={{
-              flexBasis: '48%',
+              width: `${100 / numColumns - 2}%`, // Menentukan lebar card sesuai jumlah kolom
               marginBottom: 12,
-              maxWidth: '48%', 
             }}
             onPress={() => navigation.navigate('DetailCard', item)}>
             <Image
@@ -181,27 +173,24 @@ const DetailsScreen = ({ navigation }) => {
             />
             <View className="p-4">
               <Text className="text-lg font-bold text-black">{item.title}</Text>
-              <Text className="text-gray-500 mt-0">{item.type}</Text>
+              <Text className="text-gray-500">{item.type}</Text>
             </View>
           </TouchableOpacity>
         )}
         ListEmptyComponent={() => (
-          <Text className="text-center text-gray-500 mt-4">
-            No destinations found.
-          </Text>
+          <Text className="text-center text-gray-500 mt-4">No destinations found.</Text>
         )}
       />
+
       {/* Help Button */}
-      <TouchableOpacity
-        onPress={() => navigation.navigate('AboutApp')}
-        className="absolute top-12 right-4"
-      >
+      <TouchableOpacity onPress={() => navigation.navigate('AboutApp')} className="absolute top-12 right-4">
         <Ionicons name="help-circle-outline" size={30} color="gray" />
       </TouchableOpacity>
     </View>
   );
 };
 
+// DETAIL CARD SCREEN
 const DetailCardScreen = ({ route, navigation }) => {
   const { title, image, description, price, location } = route.params;
   const imageSource = typeof image === 'string' ? { uri: image } : image;
@@ -228,10 +217,10 @@ const DetailCardScreen = ({ route, navigation }) => {
       </TouchableOpacity>
 
       {/* Image Section */}
-      <View className="hidden md:flex md:justify-center md:items-center md:h-80">
+      <View className="hidden md:flex md:justify-center sm:items-center sm:h-80">
         <Image
           source={imageSource}
-          className="rounded-lg md:w-1/2 md:h-full"
+          className="rounded-lg sm:w-1/2 sm:h-40"
           resizeMode="cover"
         />
       </View>
@@ -267,41 +256,33 @@ const DetailCardScreen = ({ route, navigation }) => {
         {/* Explore Now Button */}
         <TouchableOpacity
           onPress={() => setModalVisible(true)}
-          className="bg-blue-700 rounded-lg py-3 mt-4"
-        >
+          className="bg-blue-700 rounded-lg py-3 mt-4">
           <Text className="text-center text-white text-xl font-bold">Explore Now</Text>
         </TouchableOpacity>
       </View>
 
       {/* Modal Popup */}
-      <Modal
-        visible={modalVisible}
-        animationType="fade"
-        transparent={true}
-        onRequestClose={() => setModalVisible(false)}>
+      <Modal visible={modalVisible} animationType="fade" transparent={true} onRequestClose={() => setModalVisible(false)}>
         <View className="flex-1 bg-black/60 justify-center items-center">
-          {/* Modal Container */}
+          {/* Model Container */}
           <View className="bg-white max-w-md w-full p-5 rounded-lg shadow-lg items-center">
-            {/* Title */}
+            {/* Title Popup */}
             <Text className="text-xl font-bold text-black mb-2">
               Thank you for exploring!
             </Text>
             <Text className="text-gray-700 text-center mb-4">
               You are now one step closer to an unforgettable adventure.
             </Text>
-
             {/* GIF Image */}
             <Image
               source={require('../assets/images/travel.gif')}
               className="w-full max-w-[12rem] max-h-48 object-contain mb-4"
               resizeMode="contain"
             />
-
             {/* Close Button */}
             <TouchableOpacity
               onPress={() => setModalVisible(false)}
-              className="bg-blue-700 px-6 py-2 rounded-lg"
-            >
+              className="bg-blue-700 px-6 py-2 rounded-lg">
               <Text className="text-white font-bold text-lg">Close</Text>
             </TouchableOpacity>
           </View>
@@ -312,6 +293,7 @@ const DetailCardScreen = ({ route, navigation }) => {
 };
 
 
+// PAGE ABOUT
 const AboutAppScreen = ({ navigation }) => (
   <View className="flex-1 justify-center items-center bg-white">
     <TouchableOpacity
@@ -337,8 +319,10 @@ const AboutAppScreen = ({ navigation }) => (
   </View>
 );
 
-const Stack = createStackNavigator();
 
+
+// STACK NAVIGATOR ( PINDAH HALAMAN )
+const Stack = createStackNavigator();
 const App = () => {
   return (
     <NavigationContainer>
