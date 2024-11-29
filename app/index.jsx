@@ -14,8 +14,10 @@ import {
   ScrollView,
   Dimensions,
   useWindowDimensions,
+  component,
 } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 import { AntDesign } from '@expo/vector-icons';
@@ -28,19 +30,19 @@ const HomeScreen = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 1000);
+    const timer = setTimeout(() => setIsLoading(false), 4000); // Loading selama 4 detik
     return () => clearTimeout(timer);
   }, []);
 
-if (isLoading) {
-  return (
-    <View className="flex-1 items-center justify-center bg-blue-500">
-      <Entypo name="aircraft" size={80} color="white" />
-      <Text className="text-white text-3xl font-bold mt-2">Travelokal</Text>
-      <ActivityIndicator size="large" color="#ffffff" className="mt-4" />
-    </View>
-  );
-}
+  if (isLoading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-blue-500">
+        <Entypo name="aircraft" size={80} color="white" />
+        <Text className="text-white text-3xl font-bold mt-2">Travelokal</Text>
+        <ActivityIndicator size="large" color="#ffffff" className="mt-4" />
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1 }}>
@@ -58,8 +60,8 @@ if (isLoading) {
 
         <View className="w-full px-6 mb-10 lg:top-40">
           <View className="mb-8">
-            <Text className="text-left lg:text-center text-white text-xl">Plan your</Text>
-            <Text className="text-left lg:text-center text-white text-3xl font-bold">Luxurious Vacations</Text>
+            <Text className="text-left sm:text-center text-white text-xl">Plan your</Text>
+            <Text className="text-left sm:text-center text-white text-3xl font-bold">Luxurious Vacations</Text>
           </View>
           <TouchableOpacity
             className="bg-blue-700 py-3 px-6 rounded-2xl w-full lg:w-52 self-center"
@@ -70,7 +72,6 @@ if (isLoading) {
       </ImageBackground>
     </View>
   );
-
 };
 
 const DetailsScreen = ({ navigation }) => {
@@ -157,7 +158,7 @@ const DetailsScreen = ({ navigation }) => {
           <TouchableOpacity
             className="bg-white rounded-lg shadow-md overflow-hidden"
             style={{
-              width: `${100 / numColumns - 2}%`, // Menentukan lebar card sesuai jumlah kolom
+              width: `${100 / numColumns - 2}%`, 
               marginBottom: 12,
             }}
             onPress={() => navigation.navigate('DetailCard', item)}>
@@ -174,6 +175,18 @@ const DetailsScreen = ({ navigation }) => {
             <View className="p-4">
               <Text className="text-lg font-bold text-black">{item.title}</Text>
               <Text className="text-gray-500">{item.type}</Text>
+            
+              {/* Tambahkan elemen rating di bawah */}
+              <View className="flex-row items-center mt-2">
+                {Array.from({ length: 5 }, (_, index) => (
+                  <Text
+                    key={index}
+                    className={index < item.rating ? "text-yellow-500" : "text-gray-300"}>
+                    ★
+                  </Text>
+                ))}
+                <Text className="ml-2 text-gray-600 text-sm">({item.ratingCount})</Text>
+              </View>
             </View>
           </TouchableOpacity>
         )}
@@ -181,7 +194,6 @@ const DetailsScreen = ({ navigation }) => {
           <Text className="text-center text-gray-500 mt-4">No destinations found.</Text>
         )}
       />
-
       {/* Help Button */}
       <TouchableOpacity onPress={() => navigation.navigate('AboutApp')} className="absolute top-12 right-4">
         <Ionicons name="help-circle-outline" size={30} color="gray" />
@@ -309,8 +321,8 @@ const AboutAppScreen = ({ navigation }) => (
       }}>
       <Ionicons name="arrow-back" size={30} color="white" />
     </TouchableOpacity>
-    <Entypo name="aircraft" size={80} color="black" />
-    <Text className="text-2xl  mt-4 font-bold">About Travelokal</Text>
+    <Entypo name="aircraft" size={80} color="#333" />
+    <Text className="text-2xl  mt-4 font-bold text-gray-700">About Travelokal</Text>
     <Text className="text-gray-600 text-sm mt-1 font-normal">by Anfika Arifin</Text>
     <Text className="text-center text-gray-600 mt-4">
       Travelokal is your travel companion for discovering the best places to stay, 
@@ -323,12 +335,46 @@ const AboutAppScreen = ({ navigation }) => (
 
 // STACK NAVIGATOR ( PINDAH HALAMAN )
 const Stack = createStackNavigator();
+const Tab = createBottomTabNavigator();
+
+// Tab Navigator untuk layar utama
+const TabNavigator = () => {
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        headerShown: false, // Sembunyikan header default pada tab
+        tabBarStyle:
+          route.name === 'Home' && route.params?.isLoading === true
+            ? { display: 'none' } // Sembunyikan Tab Bar jika masih loading
+            : { display: 'flex' }, // Tampilkan Tab Bar setelah selesai loading
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName;
+          if (route.name === 'Home') {
+            iconName = focused ? 'home' : 'home-outline';
+          } else if (route.name === 'Details') {
+            iconName = focused ? 'list' : 'list-outline';
+          } else if (route.name === 'Profile') {
+            iconName = focused ? 'person' : 'person-outline';
+          }
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: 'blue',
+        tabBarInactiveTintColor: 'gray',
+      })}>
+      <Tab.Screen name="Home" component={HomeScreen} initialParams={{ isLoading: true }} />
+      <Tab.Screen name="Details" component={DetailsScreen} />
+      <Tab.Screen name="Profile" component={ProfileScreen} />
+    </Tab.Navigator>
+  );
+};
+
+// Stack Navigator untuk navigasi global
 const App = () => {
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="Details" component={DetailsScreen} />
+        {/* Masukkan Tab Navigator sebagai layar utama */}
+        <Stack.Screen name="MainTabs" component={TabNavigator} />
         <Stack.Screen name="DetailCard" component={DetailCardScreen} />
         <Stack.Screen name="AboutApp" component={AboutAppScreen} />
       </Stack.Navigator>
@@ -336,4 +382,11 @@ const App = () => {
   );
 };
 
+const ProfileScreen = () => (
+  <View className="flex-1 justify-center items-center bg-white">
+    <Ionicons name="person-circle-outline" size={80} color="gray" />
+    <Text className="text-2xl mt-4 font-bold">Your Profile</Text>
+    <Text className="text-gray-600 text-sm mt-2">Welcome to your profile!</Text>
+  </View>
+);
 export default App;
